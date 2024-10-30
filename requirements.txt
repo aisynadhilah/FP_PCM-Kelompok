@@ -1,8 +1,8 @@
 streamlit
-scikit-image
-numpy
-scipy
-matplotlib
-skimage
 imageio
-
+matplotlib
+numpy
+scikit-image
+scipy
+pandas
+Pillow
