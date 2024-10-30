@@ -1,0 +1,8 @@
+streamlit
+scikit-image
+numpy
+scipy
+matplotlib
+skimage
+imageio
+
