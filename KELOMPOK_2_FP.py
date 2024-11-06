@@ -392,14 +392,6 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         # Display the plots
         st.pyplot(fig)
 
-import numpy as np
-import pandas as pd
-import scipy.ndimage as ndi
-from skimage.measure import regionprops, regionprops_table
-import matplotlib.pyplot as plt
-import math
-import streamlit as st
-
 # Bagian Region Analysis
 elif menu == "region":
     st.write("## Region Analysis of Segmented Images")
