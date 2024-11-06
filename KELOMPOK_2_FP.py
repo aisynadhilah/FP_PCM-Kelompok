@@ -392,7 +392,7 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         # Display the plots
         st.pyplot(fig)
 
-# region
+# Region
 elif menu == "region":
     st.write("## Region Analysis of Segmented Images")
 
@@ -413,7 +413,7 @@ elif menu == "region":
         for label_ind, label_coords in enumerate(boxes1):
             cell = image_segmented1[label_coords]
             if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+                image_segmented1[label_coords] = 0  # Set small regions to 0 in the original image
 
         # Regenerate labels for Image 1
         label_img1, nlabels1 = ndi.label(image_segmented1)
@@ -424,7 +424,7 @@ elif menu == "region":
         for label_ind, label_coords in enumerate(boxes2):
             cell = image_segmented2[label_coords]
             if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+                image_segmented2[label_coords] = 0  # Set small regions to 0 in the original image
 
         # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
@@ -500,3 +500,5 @@ elif menu == "region":
     # Menampilkan tabel untuk props2
     st.subheader("Properties for Image 2")
     st.dataframe(df2)
+
+
