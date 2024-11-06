@@ -392,161 +392,130 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         # Display the plots
         st.pyplot(fig)
 
-# Bagian Region Analysis
+# region
 elif menu == "region":
     st.write("## Region Analysis of Segmented Images")
 
-    # Memastikan gambar tersegmentasi sudah ada
-    if 'image_segmented1' not in locals() or 'image_segmented2' not in locals():
-        st.error("Please perform the filtering and segmentation step first.")
-    else:
-        # **[MODIFICATION 1: Grayscale Conversion if Needed]**
-        # Ensure images are grayscale
-        if image_segmented1.ndim == 3:
-            image_segmented1 = rgb2gray(image_segmented1)
-        if image_segmented2.ndim == 3:
-            image_segmented2 = rgb2gray(image_segmented2)
-
-        # Label the segmented images
-        label_img1, nlabels1 = ndi.label(image_segmented1)
-        label_img2, nlabels2 = ndi.label(image_segmented2)
-
-        # Inform about the number of detected components
-        st.write(f"For Image 1, there are {nlabels1} separate components/objects detected.")
-        st.write(f"For Image 2, there are {nlabels2} separate components/objects detected.")
-
-        # Process Image 1
-        boxes1 = ndi.find_objects(label_img1)
-        for label_ind, label_coords in enumerate(boxes1):
-            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
-
-            # Validasi koordinat
-            if len(label_coords) == 2:
-                row_slice, col_slice = label_coords
-
-                # Cek apakah koordinat dalam batas gambar
-                if row_slice.stop <= image_segmented1.shape[0] and col_slice.stop <= image_segmented1.shape[1]:
-                    try:
-                        # Mengakses region gambar
-                        cell = image_segmented1[row_slice, col_slice]
-                        if np.product(cell.shape) < 2000: 
-                            print(f'Label {label_ind + 1} is too small! Setting to 0.')
-                            image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
-                    except Exception as e:
-                        print(f"Error accessing coordinates for label {label_ind + 1}: {e}")
-                else:
-                    print(f"Label {label_ind + 1} out of image bounds.")
-            else:
-                print(f"Label {label_ind + 1} has invalid coordinates.")
+    # Jika image_segmented1 atau image_segmented2 belum didefinisikan, lakukan proses segmentasi
+    if image_segmented1 is None or image_segmented2 is None:
+        # Pastikan median_filtered1 dan median_filtered2 sudah ada
+        if 'med1' not in locals() or 'med2' not in locals():
+            # Lakukan median filtering jika belum dilakukan
+            my_gray1 = convert_to_grayscale(np.array(im1))
+            my_gray2 = convert_to_grayscale(np.array(im2))
+            med1 = MedianFilter(my_gray1)
+            med2 = MedianFilter(my_gray2)
+    
+        # Lakukan segmentasi pada gambar yang sudah difilter
+        only_large_blobs1 = morphology.remove_small_objects(med1 < filters.threshold_otsu(med1), min_size=100)
+        only_large_blobs2 = morphology.remove_small_objects(med2 < filters.threshold_otsu(med2), min_size=100)
         
-        # Regenerate labels for Image 1
-        label_img1, nlabels1 = ndi.label(image_segmented1)
-        st.write(f"After filtering, there are {nlabels1} separate components/objects detected in Image 1.")
+        image_segmented1 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs1), min_size=100))
+        image_segmented2 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs2), min_size=100))
+    
+    # Label the segmented images
+    label_img1, nlabels1 = ndi.label(image_segmented1)
+    label_img2, nlabels2 = ndi.label(image_segmented2)
 
-        # Process Image 2
-        boxes2 = ndi.find_objects(label_img2)
-        for label_ind, label_coords in enumerate(boxes2):
-            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
+    # Tampilkan informasi mengenai jumlah komponen yang terdeteksi
+    st.write(f"For Image 1, there are {nlabels1} separate components/objects detected.")
+    st.write(f"For Image 2, there are {nlabels2} separate components/objects detected.")
 
-            # Validasi koordinat
-            if len(label_coords) == 2:
-                row_slice, col_slice = label_coords
+    # Proses Image 1 untuk menghapus label kecil
+    boxes1 = ndi.find_objects(label_img1)
+    for label_ind, label_coords in enumerate(boxes1):
+        cell = image_segmented1[label_coords]
+        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+            image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+    
+    # Regenerasi label untuk Image 1 setelah filtering
+    label_img1, nlabels1 = ndi.label(image_segmented1)
+    st.write(f"After filtering, there are {nlabels1} separate components/objects detected in Image 1.")
+    
+    # Proses Image 2 untuk menghapus label kecil
+    boxes2 = ndi.find_objects(label_img2)
+    for label_ind, label_coords in enumerate(boxes2):
+        cell = image_segmented2[label_coords]
+        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+            image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+    
+    # Regenerasi label untuk Image 2 setelah filtering
+    label_img2, nlabels2 = ndi.label(image_segmented2)
+    st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
+    
+    # Region properties untuk Image 1
+    st.write("### Region Properties for Image 1")
+    regions1 = regionprops(label_img1)
+    
+    fig1, ax1 = plt.subplots()
+    ax1.imshow(image_segmented1, cmap=plt.cm.gray)
+    for props in regions1:
+        y0, x0 = props.centroid
+        orientation = props.orientation
+        x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+        y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+        x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+        y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-                # Cek apakah koordinat dalam batas gambar
-                if row_slice.stop <= image_segmented2.shape[0] and col_slice.stop <= image_segmented2.shape[1]:
-                    try:
-                        # Mengakses region gambar
-                        cell = image_segmented2[row_slice, col_slice]
-                        if np.product(cell.shape) < 2000: 
-                            print(f'Label {label_ind + 1} is too small! Setting to 0.')
-                            image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
-                    except Exception as e:
-                        print(f"Error accessing coordinates for label {label_ind + 1}: {e}")
-                else:
-                    print(f"Label {label_ind + 1} out of image bounds.")
-            else:
-                print(f"Label {label_ind + 1} has invalid coordinates.")
-        
-        # Regenerate labels for Image 2
-        label_img2, nlabels2 = ndi.label(image_segmented2)
-        st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
+        # Plot centroid and orientation lines
+        ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+        ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+        ax1.plot(x0, y0, '.g', markersize=15)
 
+        # Plot bounding box
+        minr, minc, maxr, maxc = props.bbox
+        bx = (minc, maxc, maxc, minc, minc)
+        by = (minr, minr, maxr, maxr, minr)
+        ax1.plot(bx, by, '-b', linewidth=2.5)
+    
+    # Tampilkan gambar Image 1 dengan properties
+    st.pyplot(fig1)
 
-        # **[MODIFICATION 2: Dimension Check before `regionprops`]**
-        # Region properties for Image 1
-        if label_img1.ndim == 2:
-            st.write("### Region Properties for Image 1")
-            regions1 = regionprops(label_img1)
+    # Region properties untuk Image 2
+    st.write("### Region Properties for Image 2")
+    regions2 = regionprops(label_img2)
+    
+    fig2, ax2 = plt.subplots()
+    ax2.imshow(image_segmented2, cmap=plt.cm.gray)
+    for props in regions2:
+        y0, x0 = props.centroid
+        orientation = props.orientation
+        x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+        y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+        x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+        y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-            fig1, ax1 = plt.subplots()
-            ax1.imshow(image_segmented1, cmap=plt.cm.gray)
-            for props in regions1:
-                y0, x0 = props.centroid
-                orientation = props.orientation
-                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
+        # Plot centroid and orientation lines
+        ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+        ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+        ax2.plot(x0, y0, '.g', markersize=15)
 
-                ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-                ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-                ax1.plot(x0, y0, '.g', markersize=15)
-
-                minr, minc, maxr, maxc = props.bbox
-                bx = (minc, maxc, maxc, minc, minc)
-                by = (minr, minr, maxr, maxr, minr)
-                ax1.plot(bx, by, '-b', linewidth=2.5)
-
-            st.pyplot(fig1)
-        else:
-            st.error("Image 1 labeling failed: dimensions not suitable for regionprops.")
-
-        # Region properties for Image 2
-        if label_img2.ndim == 2:
-            st.write("### Region Properties for Image 2")
-            regions2 = regionprops(label_img2)
-
-            fig2, ax2 = plt.subplots()
-            ax2.imshow(image_segmented2, cmap=plt.cm.gray)
-            for props in regions2:
-                y0, x0 = props.centroid
-                orientation = props.orientation
-                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
-
-                ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-                ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-                ax2.plot(x0, y0, '.g', markersize=15)
-
-                minr, minc, maxr, maxc = props.bbox
-                bx = (minc, maxc, maxc, minc, minc)
-                by = (minr, minr, maxr, maxr, minr)
-                ax2.plot(bx, by, '-b', linewidth=2.5)
-
-            st.pyplot(fig2)
-        else:
-            st.error("Image 2 labeling failed: dimensions not suitable for regionprops.")
-
+        # Plot bounding box
+        minr, minc, maxr, maxc = props.bbox
+        bx = (minc, maxc, maxc, minc, minc)
+        by = (minr, minr, maxr, maxr, minr)
+        ax2.plot(bx, by, '-b', linewidth=2.5)
+    
+    # Tampilkan gambar Image 2 dengan properties
+    st.pyplot(fig2)
 
     # Menghitung properti untuk label_img1
     props1 = regionprops_table(label_img1, properties=('centroid', 'orientation',
-                                                   'major_axis_length', 'minor_axis_length'))
+                                                       'major_axis_length', 'minor_axis_length'))
     df1 = pd.DataFrame(props1)
 
     # Menghitung properti untuk label_img2
     props2 = regionprops_table(label_img2, properties=('centroid', 'orientation',
-                                                   'major_axis_length', 'minor_axis_length'))
+                                                       'major_axis_length', 'minor_axis_length'))
     df2 = pd.DataFrame(props2)
 
-    # Streamlit GUI
+    # Streamlit GUI untuk menampilkan hasil properti
     st.title("Region Properties Display")
 
-    # Menampilkan tabel untuk props1
+    # Tampilkan tabel untuk properti Image 1
     st.subheader("Properties for Image 1")
     st.dataframe(df1)
 
-    # Menampilkan tabel untuk props2
+    # Tampilkan tabel untuk properti Image 2
     st.subheader("Properties for Image 2")
     st.dataframe(df2)
