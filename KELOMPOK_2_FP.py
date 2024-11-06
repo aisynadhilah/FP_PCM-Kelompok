@@ -187,6 +187,9 @@ elif menu == "Median Filter":
         im2_array = np.array(im2)
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
+        # Normalisasi ke dalam rentang 0 hingga 1
+        my_gray1 = my_gray1 / np.max(my_gray1)
+        my_gray2 = my_gray2 / np.max(my_gray2)
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
         med1 = MedianFilter(img_adapteq1)
@@ -216,6 +219,9 @@ elif menu == "Thresholding":
         im2_array = np.array(im2)
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
+        # Normalisasi ke dalam rentang 0 hingga 1
+        my_gray1 = my_gray1 / np.max(my_gray1)
+        my_gray2 = my_gray2 / np.max(my_gray2)
         med1 = MedianFilter(my_gray1)
         med2 = MedianFilter(my_gray2)
     
@@ -296,6 +302,9 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         im2_array = np.array(im2)
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
+        # Normalisasi ke dalam rentang 0 hingga 1
+        my_gray1 = my_gray1 / np.max(my_gray1)
+        my_gray2 = my_gray2 / np.max(my_gray2)
         med1 = MedianFilter(my_gray1)
         med2 = MedianFilter(my_gray2)
         median_filtered1 = ndi.median_filter(med1, size=10)
