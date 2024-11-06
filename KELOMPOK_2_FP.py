@@ -179,11 +179,13 @@ elif menu == "Grayscale":
 elif menu == "AHE Results":
     st.write("## Adaptive Histogram Equalization (AHE) Results")
     if im1 is not None:
+        my_gray1 = convert_to_grayscale(np.array(im1))  # Konversi gambar 1 ke grayscale
         img_adapteq1 = ahe_processing(my_gray1)  # AHE pada array gambar
     else:
         img_adapteq1 = None
         
     if im2 is not None:
+        my_gray2 = convert_to_grayscale(np.array(im2))  # Konversi gambar 2 ke grayscale
         img_adapteq2 = ahe_processing(my_gray2)  # AHE pada array gambar
     else:
         img_adapteq2 = None
