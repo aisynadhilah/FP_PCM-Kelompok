@@ -20,10 +20,9 @@ image_segmented2 = None
 def convert_to_grayscale(image):
     # Menggunakan AHE untuk meningkatkan kontras
     img_adapteq = exposure.equalize_adapthist(image, clip_limit=0.01)
-    img_adapteq = img_as_ubyte(img_adapteq)  # Convert to uint8
-
     # Menghitung grayscale dari gambar yang sudah di AHE
     my_gray = img_adapteq @ np.array([0.2126, 0.7152, 0.0722])
+    my_gray = img_as_ubyte(my_gray)
     return my_gray
 
 # Fungsi untuk memproses AHE pada gambar
@@ -50,8 +49,7 @@ def plot_histogram(image, title, x_range=(0, 255), y_range=(0, 15000)):
 
 # Fungsi untuk Median Filter
 def MedianFilter(image, size=3):
-    return ndi.median_filter(image, size=3)
-    
+    return ndi.median_filter(image, size=size)
 def normalize_image(image):
     """Normalisasi gambar agar berada dalam rentang [0, 255] dan bertipe uint8."""
     image_normalized = (image - image.min()) / (image.max() - image.min())  # Normalisasi ke [0, 1]
@@ -61,7 +59,7 @@ def normalize_image(image):
 # Memuat gambar
 uploaded_file1 = st.file_uploader("Upload Image 1", type=["png", "jpg", "jpeg"])
 uploaded_file2 = st.file_uploader("Upload Image 2", type=["png", "jpg", "jpeg"])
-
+                                                          
 # --- Bagian Streamlit ---
 st.title("Image Processing Dashboard")
 
@@ -94,178 +92,241 @@ if menu == "Home":
 # Detail Gambar
 elif menu == "Image Details":
     st.write("## Image Details")
+    col1, col2 = st.columns(2)
     
-    if im1 is not None and im2 is not None:
-        col1, col2 = st.columns(2)
-        
+    if im1 is not None:
+        im1_array = np.array(im1)  # Konversi gambar 1 ke array NumPy
         with col1:
             st.write("### Details for Image 1:")
-            im1_np = np.array(im1)
-            st.write(f"Type: {type(im1_np)}")
-            st.write(f"dtype: {im1_np.dtype}")
-            st.write(f"shape: {im1_np.shape}")
-            st.write(f"size: {im1_np.size}")
+            st.write(f"Type: {type(im1)}")
+            st.write(f"dtype: {im1_array.dtype}")  # dtype dari array NumPy
+            st.write(f"shape: {im1_array.shape}")  # shape dari array NumPy
+            st.write(f"size: {im1.size}")  # size tetap dari PIL Image (lebar, tinggi)
             st.image(im1, caption="Image 1", use_column_width=True)
-
+    else:
+        with col1:
+            st.write("No Image 1 uploaded.")
+    
+    if im2 is not None:
+        im2_array = np.array(im2)  # Konversi gambar 2 ke array NumPy
         with col2:
             st.write("### Details for Image 2:")
-            im2_np = np.array(im2)
-            st.write(f"Type: {type(im2_np)}")
-            st.write(f"dtype: {im2_np.dtype}")
-            st.write(f"shape: {im2_np.shape}")
-            st.write(f"size: {im2_np.size}")
+            st.write(f"Type: {type(im2)}")
+            st.write(f"dtype: {im2_array.dtype}")  # dtype dari array NumPy
+            st.write(f"shape: {im2_array.shape}")  # shape dari array NumPy
+            st.write(f"size: {im2.size}")  # size tetap dari PIL Image (lebar, tinggi)
             st.image(im2, caption="Image 2", use_column_width=True)
-    
     else:
-        st.write("Please upload both images to see the details.")
+        with col2:
+            st.write("No Image 2 uploaded.")
 
 # Histogram Gambar
 elif menu == "Histograms":
     st.write("## Histograms for Images")
-    if im1 is not None and im2 is not None:
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
+    
+    if im1 is not None:
+        im1_array = np.array(im1)  # Konversi gambar ke array NumPy
         with col1:
             st.write("### Histogram for Image 1")
-            plot_histogram(im1_array, 'Histogram for Image 1 (im1)', (0, 255), (0, 15000))
+            plot_histogram(im1_array, 'Histogram for Image 1', (0, 255), (0, 15000))
+    else:
+        with col1:
+            st.write("No Image 1 uploaded.")
+    
+    if im2 is not None:
+        im2_array = np.array(im2)  # Konversi gambar ke array NumPy
         with col2:
             st.write("### Histogram for Image 2")
-            plot_histogram(im2_array, 'Histogram for Image 2 (im2)', (0, 255), (0, 15000))
+            plot_histogram(im2_array, 'Histogram for Image 2', (0, 255), (0, 15000))
     else:
-        st.write("Please upload both images to see the histograms.")
+        with col2:
+            st.write("No Image 2 uploaded.")
 
 # Bagian Grayscale
 elif menu == "Grayscale":
-    st.write("## Grayscale Conversion")
-    if im1 is not None and im2 is not None:
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        my_gray1 = convert_to_grayscale(im1_array)
-        my_gray2 = convert_to_grayscale(im2_array)
-        col1, col2 = st.columns(2)
-        with col1:
+    st.write("## Grayscale")
+
+    if im1 is not None:
+        my_gray1 = convert_to_grayscale(np.array(im1))  # Konversi gambar 1 ke grayscale
+    else:
+        my_gray1 = None
+    
+    if im2 is not None:
+        my_gray2 = convert_to_grayscale(np.array(im2))  # Konversi gambar 2 ke grayscale
+    else:
+        my_gray2 = None
+    
+    col1, col2 = st.columns(2)
+    
+    # Tampilkan grayscale dan hasil median filter untuk Image 1
+    with col1:
+        if my_gray1 is not None:
             st.write("### Grayscale Image 1")
             st.image(my_gray1.astype(np.uint8), caption="Grayscale Image 1", use_column_width=True)
-        with col2:
+        else:
+            st.write("No Image 1 uploaded.")
+    
+    # Tampilkan grayscale dan hasil median filter untuk Image 2
+    with col2:
+        if my_gray2 is not None:
             st.write("### Grayscale Image 2")
             st.image(my_gray2.astype(np.uint8), caption="Grayscale Image 2", use_column_width=True)
-    else:
-        st.write("Please upload both images to convert to grayscale.")
+        else:
+            st.write("No Image 2 uploaded.")
 
 # Bagian Hasil AHE
 elif menu == "AHE Results":
     st.write("## Adaptive Histogram Equalization (AHE) Results")
-    if 'my_gray1' not in locals() or 'my_gray2' not in locals():
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        my_gray1 = convert_to_grayscale(im1_array)
-        my_gray2 = convert_to_grayscale(im2_array)
-
-    # Normalisasi nilai ke dalam rentang 0 hingga 1
-    my_gray1 = my_gray1 / np.max(my_gray1)
-    my_gray2 = my_gray2 / np.max(my_gray2)
-
-    if im1 is not None and im2 is not None:
-        img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
-        img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("### AHE Image 1")
-            st.image(img_adapteq1, caption='AHE Image 1', use_column_width=True)
-        with col2:
-            st.write("### AHE Image 2")
-            st.image(img_adapteq2, caption='AHE Image 2', use_column_width=True)
+    if im1 is not None:
+        img_adapteq1 = ahe_processing(my_gray1)  # AHE pada array gambar
     else:
-        st.write("Please upload both images to apply AHE.")
+        img_adapteq1 = None
+        
+    if im2 is not None:
+        img_adapteq2 = ahe_processing(my_gray2)  # AHE pada array gambar
+    else:
+        img_adapteq2 = None
+
+    col1, col2 = st.columns(2)
+    
+    # Tampilkan hasil AHE dan gambar asli untuk Image 1
+    with col1:
+        if im1 is not None:
+            st.write("### Original Image 1")
+            st.image(im1, caption='Original Image 1', use_column_width=True)
+            st.write("### AHE Image 1")
+            st.image(img_adapteq1.astype(np.uint8), caption='AHE Image 1', use_column_width=True)
+        else:
+            st.write("No Image 1 uploaded.")
+    
+    # Tampilkan hasil AHE dan gambar asli untuk Image 2
+    with col2:
+        if im2 is not None:
+            st.write("### Original Image 2")
+            st.image(im2, caption='Original Image 2', use_column_width=True)
+            st.write("### AHE Image 2")
+            st.image(img_adapteq2.astype(np.uint8), caption='AHE Image 2', use_column_width=True)
+        else:
+            st.write("No Image 2 uploaded.")
+
+    if im1 is not None and img_adapteq1 is not None and im2 is not None and img_adapteq2 is not None:
+        st.write("### Histograms Comparison for AHE")
+        fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+
+        # Plot original and AHE histograms for Image 1
+        axes[0, 0].plot(ndi.histogram(np.array(im1), min=0, max=255, bins=256), color='orange')
+        axes[0, 0].set_title("Histogram for Image 1")
+        axes[0, 1].plot(ndi.histogram(img_adapteq1, min=0, max=255, bins=256), color='blue')
+        axes[0, 1].set_title("Histogram for AHE Image 1")
+
+        # Plot original and AHE histograms for Image 2
+        axes[1, 0].plot(ndi.histogram(np.array(im2), min=0, max=255, bins=256), color='orange')
+        axes[1, 0].set_title("Histogram for Image 2")
+        axes[1, 1].plot(ndi.histogram(img_adapteq2, min=0, max=255, bins=256), color='blue')
+        axes[1, 1].set_title("Histogram for AHE Image 2")
+
+        st.pyplot(fig)
 
 # Bagian Median Filter
 elif menu == "Median Filter":
-    st.write("## Median Filter Application")
+    st.write("## Median Filter")
 
-    if 'img_adapteq1' not in locals() or 'img_adapteq2' not in locals():
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        my_gray1 = convert_to_grayscale(im1_array)
-        my_gray2 = convert_to_grayscale(im2_array)
-        
-        # Normalisasi gambar ke dalam rentang 0 hingga 1
-        my_gray1 = my_gray1 / np.max(my_gray1)  # Memastikan nilai dalam rentang [0, 1]
-        my_gray2 = my_gray2 / np.max(my_gray2)  # Memastikan nilai dalam rentang [0, 1]
-        
-        # Terapkan Adaptive Histogram Equalization setelah normalisasi
-        img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
-        img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
+    if im1 is not None:
+        my_gray1 = convert_to_grayscale(np.array(im1))  # Konversi gambar 1 ke grayscale
+        med1 = MedianFilter(my_gray1)  # Median Filter pada grayscale Image 1
+    else:
+        mmed1 = y_gray1 = None
+    
+    if im2 is not None:
+        my_gray2 = convert_to_grayscale(np.array(im2))  # Konversi gambar 2 ke grayscale
+        med2 = MedianFilter(my_gray2)  # Median Filter pada grayscale Image 2
+    else:
+        med2 = my_gray2 = None
+    
+    col1, col2 = st.columns(2)
+    
+    # Tampilkan grayscale dan hasil median filter untuk Image 1
+    with col1:
+        if med1 is not None:
+            st.write("### Median Filtered Image 1")
+            st.image(med1.astype(np.uint8), caption="Median Filtered Image 1", use_column_width=True)
+        else:
+            st.write("No Image 1 uploaded.")
+    
+    # Tampilkan grayscale dan hasil median filter untuk Image 2
+    with col2:
+        if med2 is not None:
+            st.write("### Median Filtered Image 2")
+            st.image(med2.astype(np.uint8), caption="Median Filtered Image 2", use_column_width=True)
+        else:
+            st.write("No Image 2 uploaded.")
+    
+    # Plot histogram untuk gambar yang difilter
+    if med1 is not None and med2 is not None:
+        histogram_med1 = ndi.histogram(med1, min=0, max=255, bins=256)
+        histogram_med2 = ndi.histogram(med2, min=0, max=255, bins=256)
 
-    if im1 is not None and im2 is not None:
-        # Terapkan Median Filter
-        med1 = MedianFilter(img_adapteq1)
-        med2 = MedianFilter(img_adapteq2)
-
-        # Pastikan hasil median filter kembali ke rentang [0, 255] sebelum konversi ke uint8
-        med1 = np.clip(med1, 0, 1) * 255
-        med2 = np.clip(med2, 0, 1) * 255
-        
-        # Konversi ke tipe uint8
-        med1 = med1.astype(np.uint8)
-        med2 = med2.astype(np.uint8)
-
-        # Tampilkan hasil
         col1, col2 = st.columns(2)
         with col1:
-            st.write("### Median Filtered Image 1")
-            st.image(med1, caption="Median Filtered Image 1", use_column_width=True)
+            st.write("### Histogram Median Filtered Image 1")
+            fig1, ax1 = plt.subplots()
+            ax1.plot(histogram_med1)
+            st.pyplot(fig1)
         with col2:
-            st.write("### Median Filtered Image 2")
-            st.image(med2, caption="Median Filtered Image 2", use_column_width=True)
-    else:
-        st.write("Please upload both images to apply median filter.")
+            st.write("### Histogram Median Filtered Image 2")
+            fig2, ax2 = plt.subplots()
+            ax2.plot(histogram_med2)
+            st.pyplot(fig2)
     
-
-# Bagian Thresholding
+# Bagian Thresholding 
 elif menu == "Thresholding":
     st.write("## Thresholding")
     
-    # Pastikan gambar median difilter sudah didefinisikan
-    if 'med1' not in locals() or 'med2' not in locals():
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        my_gray1 = convert_to_grayscale(im1_array)
-        my_gray2 = convert_to_grayscale(im2_array)
-        # Normalisasi ke dalam rentang 0 hingga 1
-        my_gray1 = my_gray1 / np.max(my_gray1)
-        my_gray2 = my_gray2 / np.max(my_gray2)
-        img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
-        img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
-        med1 = MedianFilter(img_adapteq1)
-        med2 = MedianFilter(img_adapteq2) 
-    
-    # Cek properti med1 dan med2
-    st.write("### Image Properties:")
-
+    # Memastikan gambar grayscale dan median filter sudah ada
     if im1 is not None and im2 is not None:
+        # Mengonversi ke grayscale dan menerapkan Median Filter jika belum ada
+        if 'med1' not in locals() or med1 is None:
+            my_gray1 = convert_to_grayscale(np.array(im1))
+            med1 = MedianFilter(my_gray1)
+        
+        if 'med2' not in locals() or med2 is None:
+            my_gray2 = convert_to_grayscale(np.array(im2))
+            med2 = MedianFilter(my_gray2)
+    
+        # Menampilkan properti gambar
+        st.write("### Image Properties:")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("#### Image 1 Properties:")
+            st.write(f"Type: {type(med1)}")
+            st.write(f"dtype: {med1.dtype}")
+            st.write(f"shape: {med1.shape}")
+            st.write(f"size: {med1.size}")
+        
+        with col2:
+            st.write("#### Image 2 Properties:")
+            st.write(f"Type: {type(med2)}")
+            st.write(f"dtype: {med2.dtype}")
+            st.write(f"shape: {med2.shape}")
+            st.write(f"size: {med2.size}")
+
         # Thresholding menggunakan Otsu
         from skimage import filters
         
         threshold1 = filters.threshold_otsu(med1)
         threshold2 = filters.threshold_otsu(med2)
-        
+
+        # Menampilkan nilai threshold Otsu
         col1, col2 = st.columns(2)
         
         with col1:
-            st.write("#### Image 1 - Median Filtered:")
-            st.write(f"Type: {type(med1)}")
-            st.write(f"dtype: {med1.dtype}")
-            st.write(f"shape: {med1.shape}")
-            st.write(f"size: {med1.size}")
+            st.write("#### Image 1:")
             st.write("Nilai threshold Otsu untuk gambar 1:", threshold1)
-            
+        
         with col2:
-            st.write("#### Image 2 - Median Filtered:")
-            st.write(f"Type: {type(med2)}")
-            st.write(f"dtype: {med2.dtype}")
-            st.write(f"shape: {med2.shape}")
-            st.write(f"size: {med2.size}")
+            st.write("#### Image 2:")
             st.write("Nilai threshold Otsu untuk gambar 2:", threshold2)
         
         # Menampilkan hasil thresholding dan kontur pada Image 1
@@ -277,7 +338,7 @@ elif menu == "Thresholding":
         ax1[1].imshow(med1 < threshold1, cmap='gray')
         ax1[1].set_title('Image 1 - Thresholded')
         st.pyplot(fig1)
-        
+
         # Menampilkan hasil thresholding dan kontur pada Image 2
         st.write("### Thresholding and Contour for Image 2")
         fig2, ax2 = plt.subplots(ncols=2, figsize=(12, 8))
@@ -287,46 +348,26 @@ elif menu == "Thresholding":
         ax2[1].imshow(med2 < threshold2, cmap='gray')
         ax2[1].set_title('Image 2 - Thresholded')
         st.pyplot(fig2)
-        
-        # Median Filtering
-        st.write("### Median Filtering After Thresholding")
-        
-        median_filtered1 = filters.median(med1, np.ones((10, 10)))
-        median_filtered2 = filters.median(med2, np.ones((10, 10)))
-        
-        fig3, ax3 = plt.subplots(ncols=2, figsize=(12, 6))
-        ax3[0].imshow(median_filtered1, cmap='gray')
-        ax3[0].set_title('Median Filtered Image 1')
-        ax3[1].imshow(median_filtered2, cmap='gray')
-        ax3[1].set_title('Median Filtered Image 2')
-        
-        st.pyplot(fig3)
+    
     else:
-        st.write("Please upload both images to see the thresholding and median filtering results.")
+        st.write("Please upload both images to apply thresholding and median filtering.")
 
 # Bagian Penghitungan dan Visualisasi Histogram Gambar yang Difilter
 elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
-    st.write("## Histogram of Median Filtered Images")
+    st.write("## Edge Detection of Median Filtered Images")
 
     # Memastikan gambar yang terfilter sudah ada
-    if 'im1' not in locals() or 'im2' not in locals():
-        st.error("Please upload both images first.")
-    else:
-        # Jika gambar sudah ada, lakukan proses Median Filtering terlebih dahulu
-        im1_array = np.array(im1)
-        im2_array = np.array(im2)
-        my_gray1 = convert_to_grayscale(im1_array)
-        my_gray2 = convert_to_grayscale(im2_array)
-        # Normalisasi ke dalam rentang 0 hingga 1
-        my_gray1 = my_gray1 / np.max(my_gray1)
-        my_gray2 = my_gray2 / np.max(my_gray2)
-        med1 = MedianFilter(my_gray1)
-        med2 = MedianFilter(my_gray2)
-        median_filtered1 = ndi.median_filter(med1, size=10)
-        median_filtered2 = ndi.median_filter(med2, size=10)
+    if im1 is not None and im2 is not None:
+        if 'med1' not in locals() or med1 is None:
+            my_gray1 = convert_to_grayscale(np.array(im1))
+            med1 = MedianFilter(my_gray1)
 
-        # Slice pada median_filtered1
-        median_filtered11 = median_filtered1[:, 100:]
+        if 'med2' not in locals() or med2 is None:
+            my_gray2 = convert_to_grayscale(np.array(im2))
+            med2 = MedianFilter(my_gray2)
+
+        # Slice pada median_filtered11 (cropped area from med1)
+        median_filtered11 = med1[:, 100:]
 
         # Normalisasi dan tampilkan gambar median_filtered11 di Streamlit
         st.image(normalize_image(median_filtered11), caption="Median Filtered 11 (Cropped)", use_column_width=True)
@@ -339,7 +380,8 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         ax.set_title(f'Contour for Median Filtered 11 at Threshold {threshold3}')
         st.pyplot(fig)
 
-        # Thresholding dan contour untuk median_filtered2
+        # Thresholding dan contour untuk median_filtered2 (full med2 image)
+        median_filtered2 = med2
         threshold4 = filters.threshold_otsu(median_filtered2)
         fig, ax = plt.subplots()
         ax.imshow(median_filtered2, cmap='gray')
@@ -348,29 +390,58 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         st.pyplot(fig)
 
         # Binary classification
-        binary_image1 = median_filtered11 < threshold3
-        st.image(binary_image1.astype(np.uint8) * 255, caption="Binary Classification Image 1", use_column_width=True)
+        st.write("## Binary Classification")
+        st.header('Image 1')
+        # Layout tiga kolom
+        col1, col2, col3 = st.columns(3)
+        # Binary Classification Image 1 di kolom pertama
+        with col1:
+            st.subheader('Binary Image')
+            binary_image1 = median_filtered11 < threshold3
+            st.image(binary_image1.astype(np.uint8) * 255, caption="Binary Classification Image 1", use_column_width=True)
 
-        binary_image2 = median_filtered2 < threshold4
-        st.image(binary_image2.astype(np.uint8) * 255, caption="Binary Classification Image 2", use_column_width=True)
+        # Large Blobs Image 1 di kolom kedua
+        with col2:
+            st.subheader('Large Blobs')
+            only_large_blobs1 = morphology.remove_small_objects(binary_image1, min_size=100)
+            st.image(only_large_blobs1.astype(np.uint8) * 255, caption="Large Blobs Image 1", use_column_width=True)
 
-        # Remove small objects using morphology
-        only_large_blobs1 = morphology.remove_small_objects(binary_image1, min_size=100)
-        st.image(only_large_blobs1.astype(np.uint8) * 255, caption="Large Blobs Image 1", use_column_width=True)
+        # Segmented Image 1 di kolom ketiga
+        with col3:
+            st.subheader('Segmented')
+            only_large1 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs1), min_size=100))
+            image_segmented1 = only_large1
+            st.image(image_segmented1.astype(np.uint8) * 255, caption="Segmented Image 1", use_column_width=True)
+       
 
-        only_large_blobs2 = morphology.remove_small_objects(binary_image2, min_size=100)
-        st.image(only_large_blobs2.astype(np.uint8) * 255, caption="Large Blobs Image 2", use_column_width=True)
 
-        # Fill small holes
-        only_large1 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs1), min_size=100))
-        image_segmented1 = only_large1
-        st.image(image_segmented1.astype(np.uint8) * 255, caption="Segmented Image 1", use_column_width=True)
+        #IMAGE 2
+        # Layout tiga kolom untuk IMAGE 2
+        st.header('Image 2')
+        col1, col2, col3 = st.columns(3)
 
-        only_large2 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs2), min_size=100))
-        image_segmented2 = only_large2
-        st.image(image_segmented2.astype(np.uint8) * 255, caption="Segmented Image 2", use_column_width=True)
+        # Binary Classification Image 2 di kolom pertama
+        with col1:
+            st.subheader('Binary Image')
+            binary_image2 = median_filtered2 < threshold4
+            st.image(binary_image2.astype(np.uint8) * 255, caption="Binary Classification Image 2", use_column_width=True)
+
+        #   Large Blobs Image 2 di kolom kedua
+        with col2:
+            st.subheader('Large Blobs')
+            only_large_blobs2 = morphology.remove_small_objects(binary_image2, min_size=100)
+            st.image(only_large_blobs2.astype(np.uint8) * 255, caption="Large Blobs Image 2", use_column_width=True)
+
+        # Segmented Image 2 di kolom ketiga
+        with col3:
+            st.subheader('Segmented')
+            only_large2 = np.logical_not(morphology.remove_small_objects(np.logical_not(only_large_blobs2), min_size=100))
+            image_segmented2 = only_large2
+            st.image(image_segmented2.astype(np.uint8) * 255, caption="Segmented Image 2", use_column_width=True)
+        
 
         # Calculate histograms for both filtered images
+        st.write("## Histogram")
         histo_median1 = ndi.histogram(med1, min=0, max=255, bins=256)
         histo_median2 = ndi.histogram(med2, min=0, max=255, bins=256)
 
@@ -391,6 +462,9 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
 
         # Display the plots
         st.pyplot(fig)
+
+    else:
+        st.write("Please upload both images to calculate and visualize histograms.")
 
 # region
 elif menu == "region":
@@ -425,7 +499,7 @@ elif menu == "region":
     boxes1 = ndi.find_objects(label_img1)
     for label_ind, label_coords in enumerate(boxes1):
         cell = image_segmented1[label_coords]
-        if np.prod(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
             image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
     
     # Regenerasi label untuk Image 1 setelah filtering
@@ -436,7 +510,7 @@ elif menu == "region":
     boxes2 = ndi.find_objects(label_img2)
     for label_ind, label_coords in enumerate(boxes2):
         cell = image_segmented2[label_coords]
-        if np.prod(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
             image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
     
     # Regenerasi label untuk Image 2 setelah filtering
@@ -467,9 +541,12 @@ elif menu == "region":
         bx = (minc, maxc, maxc, minc, minc)
         by = (minr, minr, maxr, maxr, minr)
         ax1.plot(bx, by, '-b', linewidth=2.5)
-    
-    # Tampilkan gambar Image 1 dengan properties
+
+    # Set limit sumbu x dan y
+    ax1.set_xlim(0, 700)
+    ax1.set_ylim(480, 0)  # Note: for images, y-axis is usually inverted
     st.pyplot(fig1)
+    
 
     # Region properties untuk Image 2
     st.write("### Region Properties for Image 2")
@@ -496,7 +573,9 @@ elif menu == "region":
         by = (minr, minr, maxr, maxr, minr)
         ax2.plot(bx, by, '-b', linewidth=2.5)
     
-    # Tampilkan gambar Image 2 dengan properties
+    # Set limit sumbu x dan y
+    ax2.set_xlim(0, 700)
+    ax2.set_ylim(470, 0)  # y-axis inverted
     st.pyplot(fig2)
 
     # Menghitung properti untuk label_img1
