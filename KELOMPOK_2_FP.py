@@ -188,9 +188,12 @@ elif menu == "Median Filter":
         im2_array = np.array(im2)
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
-        # Normalisasi ke dalam rentang 0 hingga 1
-        #my_gray1 = my_gray1 / np.max(my_gray1)
-        #my_gray2 = my_gray2 / np.max(my_gray2)
+        
+        # Normalisasi gambar ke dalam rentang 0 hingga 1 jika perlu
+        my_gray1 = my_gray1 / np.max(my_gray1)  # Memastikan nilai dalam rentang [0, 1]
+        my_gray2 = my_gray2 / np.max(my_gray2)  # Memastikan nilai dalam rentang [0, 1]
+        
+        # Terapkan Adaptive Histogram Equalization setelah normalisasi
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
 
