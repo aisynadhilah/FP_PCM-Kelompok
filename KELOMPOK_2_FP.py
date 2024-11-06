@@ -156,8 +156,10 @@ elif menu == "Grayscale":
 elif menu == "AHE Results":
     st.write("## Adaptive Histogram Equalization (AHE) Results")
     if 'my_gray1' not in locals() or 'my_gray2' not in locals():
-        my_gray1 = convert_to_grayscale(im1)
-        my_gray2 = convert_to_grayscale(im2)
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
+        my_gray1 = convert_to_grayscale(im1_array)
+        my_gray2 = convert_to_grayscale(im2_array)
 
     if im1 is not None and im2 is not None:
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
@@ -177,8 +179,10 @@ elif menu == "Median Filter":
     st.write("## Median Filter Application")
 
     if 'img_adapteq1' not in locals() or 'img_adapteq2' not in locals():
-        my_gray1 = convert_to_grayscale(im1)
-        my_gray2 = convert_to_grayscale(im2)
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
+        my_gray1 = convert_to_grayscale(im1_array)
+        my_gray2 = convert_to_grayscale(im2_array)
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
         med1 = MedianFilter(img_adapteq1)
@@ -204,8 +208,10 @@ elif menu == "Thresholding":
     
     # Pastikan gambar median difilter sudah didefinisikan
     if 'med1' not in locals() or 'med2' not in locals():
-        my_gray1 = convert_to_grayscale(im1)
-        my_gray2 = convert_to_grayscale(im2)
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
+        my_gray1 = convert_to_grayscale(im1_array)
+        my_gray2 = convert_to_grayscale(im2_array)
         med1 = MedianFilter(my_gray1)
         med2 = MedianFilter(my_gray2)
     
@@ -282,8 +288,10 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         st.error("Please upload both images first.")
     else:
         # Jika gambar sudah ada, lakukan proses Median Filtering terlebih dahulu
-        my_gray1 = convert_to_grayscale(im1)
-        my_gray2 = convert_to_grayscale(im2)
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
+        my_gray1 = convert_to_grayscale(im1_array)
+        my_gray2 = convert_to_grayscale(im2_array)
         med1 = MedianFilter(my_gray1)
         med2 = MedianFilter(my_gray2)
         median_filtered1 = ndi.median_filter(med1, size=10)
