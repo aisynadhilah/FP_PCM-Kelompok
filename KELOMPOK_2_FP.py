@@ -413,36 +413,45 @@ elif menu == "region":
         for label_ind, label_coords in enumerate(boxes1):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             
-            if label_coords is not None:
-                minr, minc, maxr, maxc = label_coords
-                cell = image_segmented1[minr:maxr, minc:maxc]  # Memotong gambar sesuai koordinat
-                
-                # Memeriksa ukuran cell (bila terlalu kecil, set ke 0)
-                if np.product(cell.shape) < 2000:
-                    print(f'Label {label_ind} is too small! Setting to 0.')
-                    image_segmented1[minr:maxr, minc:maxc] = 0  # Set bagian tersebut ke 0
-
-        # Regenerate labels for Image 1 after modification
+            # Pastikan label_coords adalah tuple yang valid dan berada dalam batas gambar
+            if len(label_coords) == 2:
+                row_slice, col_slice = label_coords
+                if row_slice.stop <= image_segmented1.shape[0] and col_slice.stop <= image_segmented1.shape[1]:
+                    cell = image_segmented1[row_slice, col_slice]  # Memastikan label coords valid
+                    if np.product(cell.shape) < 2000: 
+                        print('Label {} is too small! Setting to 0.'.format(label_ind))
+                        image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+                else:
+                    print(f"Label {label_ind + 1} out of image bounds.")
+            else:
+                print(f"Label {label_ind + 1} has invalid coordinates.")
+        
+        # Regenerate labels for Image 1
         label_img1, nlabels1 = ndi.label(image_segmented1)
         st.write(f"After filtering, there are {nlabels1} separate components/objects detected in Image 1.")
 
-        # Process Image 2 (same as Image 1 processing)
+        # Process Image 2
         boxes2 = ndi.find_objects(label_img2)
         for label_ind, label_coords in enumerate(boxes2):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             
-            if label_coords is not None:
-                minr, minc, maxr, maxc = label_coords
-                cell = image_segmented2[minr:maxr, minc:maxc]
-                
-                # Memeriksa ukuran cell (bila terlalu kecil, set ke 0)
-                if np.product(cell.shape) < 2000:
-                    print(f'Label {label_ind} is too small! Setting to 0.')
-                    image_segmented2[minr:maxr, minc:maxc] = 0
-
-        # Regenerate labels for Image 2 after modification
+            # Pastikan label_coords adalah tuple yang valid dan berada dalam batas gambar
+            if len(label_coords) == 2:
+                row_slice, col_slice = label_coords
+                if row_slice.stop <= image_segmented2.shape[0] and col_slice.stop <= image_segmented2.shape[1]:
+                    cell = image_segmented2[row_slice, col_slice]
+                    if np.product(cell.shape) < 2000: 
+                        print('Label {} is too small! Setting to 0.'.format(label_ind))
+                        image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+                else:
+                    print(f"Label {label_ind + 1} out of image bounds.")
+            else:
+                print(f"Label {label_ind + 1} has invalid coordinates.")
+        
+        # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
         st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
+
 
         # Region properties for Image 1
         st.write("### Region Properties for Image 1")
