@@ -138,6 +138,8 @@ elif menu == "Histograms":
 elif menu == "Grayscale":
     st.write("## Grayscale Conversion")
     if im1 is not None and im2 is not None:
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
         col1, col2 = st.columns(2)
