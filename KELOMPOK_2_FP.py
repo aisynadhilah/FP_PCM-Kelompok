@@ -237,8 +237,8 @@ elif menu == "Thresholding":
         my_gray2 = my_gray2 / np.max(my_gray2)
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
-        med1 = MedianFilter(img_adapteq1) * np.max(med1)
-        med2 = MedianFilter(img_adapteq2) * np.max(med2)
+        med1 = MedianFilter(img_adapteq1)
+        med2 = MedianFilter(img_adapteq2) 
     
     # Cek properti med1 dan med2
     st.write("### Image Properties:")
@@ -413,8 +413,9 @@ elif menu == "region":
         for label_ind, label_coords in enumerate(boxes1):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             cell = image_segmented1[label_coords]  # Memastikan label coords valid
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented1[label_coords] = np.zeros_like(cell)  # Set small regions to 0
+            if np.product(cell.shape) < 2000: 
+                print('Label {} is too small! Setting to 0.'.format(label_ind))
+                image_segmented1 = np.where(labels==label_ind+1, 0, image_segmented1)
 
         # Regenerate labels for Image 1
         label_img1, nlabels1 = ndi.label(image_segmented1)
@@ -425,8 +426,9 @@ elif menu == "region":
         for label_ind, label_coords in enumerate(boxes2):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             cell = image_segmented2[label_coords]
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented2[label_coords] = np.zeros_like(cell)  # Set small regions to 0
+            if np.product(cell.shape) < 2000: 
+                print('Label {} is too small! Setting to 0.'.format(label_ind))
+                image_segmented2 = np.where(labels==label_ind+1, 0, image_segmented2)
 
         # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
