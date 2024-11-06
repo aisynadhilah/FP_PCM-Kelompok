@@ -392,7 +392,7 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         # Display the plots
         st.pyplot(fig)
 
-# region
+# Bagian Region Analysis
 elif menu == "region":
     st.write("## Region Analysis of Segmented Images")
 
@@ -411,22 +411,36 @@ elif menu == "region":
         # Process Image 1
         boxes1 = ndi.find_objects(label_img1)
         for label_ind, label_coords in enumerate(boxes1):
-            cell = image_segmented1[label_coords]
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
+            
+            if label_coords is not None:
+                minr, minc, maxr, maxc = label_coords
+                cell = image_segmented1[minr:maxr, minc:maxc]  # Memotong gambar sesuai koordinat
+                
+                # Memeriksa ukuran cell (bila terlalu kecil, set ke 0)
+                if np.product(cell.shape) < 2000:
+                    print(f'Label {label_ind} is too small! Setting to 0.')
+                    image_segmented1[minr:maxr, minc:maxc] = 0  # Set bagian tersebut ke 0
 
-        # Regenerate labels for Image 1
+        # Regenerate labels for Image 1 after modification
         label_img1, nlabels1 = ndi.label(image_segmented1)
         st.write(f"After filtering, there are {nlabels1} separate components/objects detected in Image 1.")
 
-        # Process Image 2
+        # Process Image 2 (same as Image 1 processing)
         boxes2 = ndi.find_objects(label_img2)
         for label_ind, label_coords in enumerate(boxes2):
-            cell = image_segmented2[label_coords]
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
+            
+            if label_coords is not None:
+                minr, minc, maxr, maxc = label_coords
+                cell = image_segmented2[minr:maxr, minc:maxc]
+                
+                # Memeriksa ukuran cell (bila terlalu kecil, set ke 0)
+                if np.product(cell.shape) < 2000:
+                    print(f'Label {label_ind} is too small! Setting to 0.')
+                    image_segmented2[minr:maxr, minc:maxc] = 0
 
-        # Regenerate labels for Image 2
+        # Regenerate labels for Image 2 after modification
         label_img2, nlabels2 = ndi.label(image_segmented2)
         st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
 
@@ -455,7 +469,7 @@ elif menu == "region":
 
         st.pyplot(fig1)
 
-        # Region properties for Image 2
+        # Region properties for Image 2 (same as Image 1 processing)
         st.write("### Region Properties for Image 2")
         regions2 = regionprops(label_img2)
 
@@ -500,5 +514,3 @@ elif menu == "region":
     # Menampilkan tabel untuk props2
     st.subheader("Properties for Image 2")
     st.dataframe(df2)
-
-
