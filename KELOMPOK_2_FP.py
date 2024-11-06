@@ -497,11 +497,11 @@ elif menu == "region":
     st.write(f"For Image 1, there are {nlabels1} separate components/objects detected.")
     st.write(f"For Image 2, there are {nlabels2} separate components/objects detected.")
 
-    # Proses Image 1 untuk menghapus label kecil
+   # Proses Image 1 untuk menghapus label kecil
     boxes1 = ndi.find_objects(label_img1)
     for label_ind, label_coords in enumerate(boxes1):
         cell = image_segmented1[label_coords]
-        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+        if np.prod(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
             image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
     
     # Regenerasi label untuk Image 1 setelah filtering
@@ -512,7 +512,7 @@ elif menu == "region":
     boxes2 = ndi.find_objects(label_img2)
     for label_ind, label_coords in enumerate(boxes2):
         cell = image_segmented2[label_coords]
-        if np.product(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
+        if np.prod(cell.shape) < 2000:  # Filter komponen yang terlalu kecil
             image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
     
     # Regenerasi label untuk Image 2 setelah filtering
