@@ -411,9 +411,10 @@ elif menu == "region":
         # Process Image 1
         boxes1 = ndi.find_objects(label_img1)
         for label_ind, label_coords in enumerate(boxes1):
+            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             cell = image_segmented1[label_coords]
             if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented1[label_coords] = 0  # Set small regions to 0 in the original image
+                image_segmented1[label_coords] = np.zeros_like(cell)  # Set small regions to 0
 
         # Regenerate labels for Image 1
         label_img1, nlabels1 = ndi.label(image_segmented1)
@@ -422,9 +423,10 @@ elif menu == "region":
         # Process Image 2
         boxes2 = ndi.find_objects(label_img2)
         for label_ind, label_coords in enumerate(boxes2):
+            st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
             cell = image_segmented2[label_coords]
             if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented2[label_coords] = 0  # Set small regions to 0 in the original image
+                image_segmented2[label_coords] = np.zeros_like(cell)  # Set small regions to 0
 
         # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
@@ -500,5 +502,3 @@ elif menu == "region":
     # Menampilkan tabel untuk props2
     st.subheader("Properties for Image 2")
     st.dataframe(df2)
-
-
