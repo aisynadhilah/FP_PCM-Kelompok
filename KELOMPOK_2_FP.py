@@ -1,6 +1,5 @@
 import streamlit as st
 import imageio
-import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 from skimage import exposure, img_as_ubyte
