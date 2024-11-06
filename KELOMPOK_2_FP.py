@@ -371,8 +371,8 @@ elif menu == "Penghitungan dan Visualisasi Histogram Gambar yang Difilter":
         st.image(image_segmented2.astype(np.uint8) * 255, caption="Segmented Image 2", use_column_width=True)
 
         # Calculate histograms for both filtered images
-        histo_median1 = ndi.histogram(median_filtered1, min=0, max=255, bins=256)
-        histo_median2 = ndi.histogram(median_filtered2, min=0, max=255, bins=256)
+        histo_median1 = ndi.histogram(med1, min=0, max=255, bins=256)
+        histo_median2 = ndi.histogram(med2, min=0, max=255, bins=256)
 
         # Create a figure with 2 subplots for side-by-side comparison
         fig, ax = plt.subplots(ncols=2, figsize=(12, 6))
