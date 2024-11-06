@@ -51,6 +51,7 @@ def plot_histogram(image, title, x_range=(0, 255), y_range=(0, 15000)):
 # Fungsi untuk Median Filter
 def MedianFilter(image, size=3):
     return ndi.median_filter(image, size=3)
+    
 def normalize_image(image):
     """Normalisasi gambar agar berada dalam rentang [0, 255] dan bertipe uint8."""
     image_normalized = (image - image.min()) / (image.max() - image.min())  # Normalisasi ke [0, 1]
@@ -194,8 +195,8 @@ elif menu == "Median Filter":
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
 
     if im1 is not None and im2 is not None:
-        med1 = MedianFilter(img_adapteq1)
-        med2 = MedianFilter(img_adapteq2)
+        med1 = MedianFilter(my_gray1)
+        med2 = MedianFilter(my_gray2)
         col1, col2 = st.columns(2)
         with col1:
             st.write("### Median Filtered Image 1")
@@ -415,73 +416,74 @@ elif menu == "region":
         label_img2, nlabels2 = ndi.label(image_segmented2)
         st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
 
-        # Region properties for Image 1
-        st.write("### Region Properties for Image 1")
-        regions1 = regionprops(label_img1)
+        # Pastikan label_img1 adalah 2D sebelum regionprops
+        if label_img1.ndim == 2:
+            st.write("### Region Properties for Image 1")
+            regions1 = regionprops(label_img1)
 
-        fig1, ax1 = plt.subplots()
-        ax1.imshow(image_segmented1, cmap=plt.cm.gray)
-        for props in regions1:
-            y0, x0 = props.centroid
-            orientation = props.orientation
-            x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-            y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-            x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-            y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
+            fig1, ax1 = plt.subplots()
+            ax1.imshow(image_segmented1, cmap=plt.cm.gray)
+            for props in regions1:
+                y0, x0 = props.centroid
+                orientation = props.orientation
+                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-            ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-            ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-            ax1.plot(x0, y0, '.g', markersize=15)
+                ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+                ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+                ax1.plot(x0, y0, '.g', markersize=15)
 
-            minr, minc, maxr, maxc = props.bbox
-            bx = (minc, maxc, maxc, minc, minc)
-            by = (minr, minr, maxr, maxr, minr)
-            ax1.plot(bx, by, '-b', linewidth=2.5)
+                minr, minc, maxr, maxc = props.bbox
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+                ax1.plot(bx, by, '-b', linewidth=2.5)
 
-        st.pyplot(fig1)
+            st.pyplot(fig1)
+        else:
+            st.error("Label image for Image 1 is not 2D, cannot compute region properties.")
 
-        # Region properties for Image 2
-        st.write("### Region Properties for Image 2")
-        regions2 = regionprops(label_img2)
+        # Pastikan label_img2 adalah 2D sebelum regionprops
+        if label_img2.ndim == 2:
+            st.write("### Region Properties for Image 2")
+            regions2 = regionprops(label_img2)
 
-        fig2, ax2 = plt.subplots()
-        ax2.imshow(image_segmented2, cmap=plt.cm.gray)
-        for props in regions2:
-            y0, x0 = props.centroid
-            orientation = props.orientation
-            x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-            y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-            x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-            y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
+            fig2, ax2 = plt.subplots()
+            ax2.imshow(image_segmented2, cmap=plt.cm.gray)
+            for props in regions2:
+                y0, x0 = props.centroid
+                orientation = props.orientation
+                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-            ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-            ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-            ax2.plot(x0, y0, '.g', markersize=15)
+                ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+                ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+                ax2.plot(x0, y0, '.g', markersize=15)
 
-            minr, minc, maxr, maxc = props.bbox
-            bx = (minc, maxc, maxc, minc, minc)
-            by = (minr, minr, maxr, maxr, minr)
-            ax2.plot(bx, by, '-b', linewidth=2.5)
+                minr, minc, maxr, maxc = props.bbox
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+                ax2.plot(bx, by, '-b', linewidth=2.5)
 
-        st.pyplot(fig2)
+            st.pyplot(fig2)
+        else:
+            st.error("Label image for Image 2 is not 2D, cannot compute region properties.")
 
-    # Menghitung properti untuk label_img1
-    props1 = regionprops_table(label_img1, properties=('centroid', 'orientation',
-                                                   'major_axis_length', 'minor_axis_length'))
-    df1 = pd.DataFrame(props1)
+    # Menghitung properti untuk label_img1 jika 2D
+    if label_img1.ndim == 2:
+        props1 = regionprops_table(label_img1, properties=('centroid', 'orientation',
+                                                           'major_axis_length', 'minor_axis_length'))
+        df1 = pd.DataFrame(props1)
+        st.subheader("Properties for Image 1")
+        st.dataframe(df1)
 
-    # Menghitung properti untuk label_img2
-    props2 = regionprops_table(label_img2, properties=('centroid', 'orientation',
-                                                   'major_axis_length', 'minor_axis_length'))
-    df2 = pd.DataFrame(props2)
-
-    # Streamlit GUI
-    st.title("Region Properties Display")
-
-    # Menampilkan tabel untuk props1
-    st.subheader("Properties for Image 1")
-    st.dataframe(df1)
-
-    # Menampilkan tabel untuk props2
-    st.subheader("Properties for Image 2")
-    st.dataframe(df2)
+    # Menghitung properti untuk label_img2 jika 2D
+    if label_img2.ndim == 2:
+        props2 = regionprops_table(label_img2, properties=('centroid', 'orientation',
+                                                           'major_axis_length', 'minor_axis_length'))
+        df2 = pd.DataFrame(props2)
+        st.subheader("Properties for Image 2")
+        st.dataframe(df2)
