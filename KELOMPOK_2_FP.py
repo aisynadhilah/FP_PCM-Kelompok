@@ -65,7 +65,7 @@ uploaded_file2 = st.file_uploader("Upload Image 2", type=["png", "jpg", "jpeg"])
 st.title("Image Processing Dashboard")
 
 # Sidebar menu untuk navigasi
-menu = st.sidebar.radio("Menu", ["Home", "Image Details", "Histograms", "Grayscale", "AHE Results", "Median Filter", "Thresholding dan Median Filtering", "Penghitungan dan Visualisasi Histogram Gambar yang Difilter", "region"])
+menu = st.sidebar.radio("Menu", ["Home", "Image Details", "Histograms", "Grayscale", "AHE Results", "Median Filter", "Thresholding", "Penghitungan dan Visualisasi Histogram Gambar yang Difilter", "region"])
 
 # If images are uploaded, open them
 if uploaded_file1 is not None:
@@ -192,8 +192,6 @@ elif menu == "Median Filter":
         my_gray2 = my_gray2 / np.max(my_gray2)
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
-        med1 = MedianFilter(img_adapteq1)
-        med2 = MedianFilter(img_adapteq2)
 
     if im1 is not None and im2 is not None:
         med1 = MedianFilter(img_adapteq1)
@@ -396,9 +394,10 @@ elif menu == "region":
         # Process Image 1
         boxes1 = ndi.find_objects(label_img1)
         for label_ind, label_coords in enumerate(boxes1):
-            cell = image_segmented1[label_coords]
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+            if label_coords is not None:  # Check if label_coords is valid
+                cell = image_segmented1[label_coords]
+                if np.product(cell.shape) < 2000:  # Remove small labels
+                    image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
 
         # Regenerate labels for Image 1
         label_img1, nlabels1 = ndi.label(image_segmented1)
@@ -407,9 +406,10 @@ elif menu == "region":
         # Process Image 2
         boxes2 = ndi.find_objects(label_img2)
         for label_ind, label_coords in enumerate(boxes2):
-            cell = image_segmented2[label_coords]
-            if np.product(cell.shape) < 2000:  # Remove small labels
-                image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+            if label_coords is not None:  # Check if label_coords is valid
+                cell = image_segmented2[label_coords]
+                if np.product(cell.shape) < 2000:  # Remove small labels
+                    image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
 
         # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
