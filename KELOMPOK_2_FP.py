@@ -161,6 +161,10 @@ elif menu == "AHE Results":
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
 
+    # Normalisasi nilai ke dalam rentang 0 hingga 1
+    my_gray1 = my_gray1 / np.max(my_gray1)
+    my_gray2 = my_gray2 / np.max(my_gray2)
+
     if im1 is not None and im2 is not None:
         img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
