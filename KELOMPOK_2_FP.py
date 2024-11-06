@@ -122,13 +122,15 @@ elif menu == "Image Details":
 elif menu == "Histograms":
     st.write("## Histograms for Images")
     if im1 is not None and im2 is not None:
+        im1_array = np.array(im1)
+        im2_array = np.array(im2)
         col1, col2 = st.columns(2)
         with col1:
             st.write("### Histogram for Image 1")
-            plot_histogram(im1, 'Histogram for Image 1 (im1)', (0, 255), (0, 15000))
+            plot_histogram(im1_array, 'Histogram for Image 1 (im1)', (0, 255), (0, 15000))
         with col2:
             st.write("### Histogram for Image 2")
-            plot_histogram(im2, 'Histogram for Image 2 (im2)', (0, 255), (0, 15000))
+            plot_histogram(im2_array, 'Histogram for Image 2 (im2)', (0, 255), (0, 15000))
     else:
         st.write("Please upload both images to see the histograms.")
 
@@ -136,8 +138,8 @@ elif menu == "Histograms":
 elif menu == "Grayscale":
     st.write("## Grayscale Conversion")
     if im1 is not None and im2 is not None:
-        my_gray1 = convert_to_grayscale(im1)
-        my_gray2 = convert_to_grayscale(im2)
+        my_gray1 = convert_to_grayscale(im1_array)
+        my_gray2 = convert_to_grayscale(im2_array)
         col1, col2 = st.columns(2)
         with col1:
             st.write("### Grayscale Image 1")
