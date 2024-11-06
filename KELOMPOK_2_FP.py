@@ -400,6 +400,13 @@ elif menu == "region":
     if 'image_segmented1' not in locals() or 'image_segmented2' not in locals():
         st.error("Please perform the filtering and segmentation step first.")
     else:
+        # **[MODIFICATION 1: Grayscale Conversion if Needed]**
+        # Ensure images are grayscale
+        if image_segmented1.ndim == 3:
+            image_segmented1 = rgb2gray(image_segmented1)
+        if image_segmented2.ndim == 3:
+            image_segmented2 = rgb2gray(image_segmented2)
+
         # Label the segmented images
         label_img1, nlabels1 = ndi.label(image_segmented1)
         label_img2, nlabels2 = ndi.label(image_segmented2)
@@ -465,56 +472,63 @@ elif menu == "region":
         st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
 
 
-
+        # **[MODIFICATION 2: Dimension Check before `regionprops`]**
         # Region properties for Image 1
-        st.write("### Region Properties for Image 1")
-        regions1 = regionprops(label_img1)
+        if label_img1.ndim == 2:
+            st.write("### Region Properties for Image 1")
+            regions1 = regionprops(label_img1)
 
-        fig1, ax1 = plt.subplots()
-        ax1.imshow(image_segmented1, cmap=plt.cm.gray)
-        for props in regions1:
-            y0, x0 = props.centroid
-            orientation = props.orientation
-            x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-            y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-            x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-            y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
+            fig1, ax1 = plt.subplots()
+            ax1.imshow(image_segmented1, cmap=plt.cm.gray)
+            for props in regions1:
+                y0, x0 = props.centroid
+                orientation = props.orientation
+                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-            ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-            ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-            ax1.plot(x0, y0, '.g', markersize=15)
+                ax1.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+                ax1.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+                ax1.plot(x0, y0, '.g', markersize=15)
 
-            minr, minc, maxr, maxc = props.bbox
-            bx = (minc, maxc, maxc, minc, minc)
-            by = (minr, minr, maxr, maxr, minr)
-            ax1.plot(bx, by, '-b', linewidth=2.5)
+                minr, minc, maxr, maxc = props.bbox
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+                ax1.plot(bx, by, '-b', linewidth=2.5)
 
-        st.pyplot(fig1)
+            st.pyplot(fig1)
+        else:
+            st.error("Image 1 labeling failed: dimensions not suitable for regionprops.")
 
-        # Region properties for Image 2 (same as Image 1 processing)
-        st.write("### Region Properties for Image 2")
-        regions2 = regionprops(label_img2)
+        # Region properties for Image 2
+        if label_img2.ndim == 2:
+            st.write("### Region Properties for Image 2")
+            regions2 = regionprops(label_img2)
 
-        fig2, ax2 = plt.subplots()
-        ax2.imshow(image_segmented2, cmap=plt.cm.gray)
-        for props in regions2:
-            y0, x0 = props.centroid
-            orientation = props.orientation
-            x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
-            y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
-            x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
-            y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
+            fig2, ax2 = plt.subplots()
+            ax2.imshow(image_segmented2, cmap=plt.cm.gray)
+            for props in regions2:
+                y0, x0 = props.centroid
+                orientation = props.orientation
+                x1 = x0 + math.cos(orientation) * 0.5 * props.minor_axis_length
+                y1 = y0 - math.sin(orientation) * 0.5 * props.minor_axis_length
+                x2 = x0 - math.sin(orientation) * 0.5 * props.major_axis_length
+                y2 = y0 - math.cos(orientation) * 0.5 * props.major_axis_length
 
-            ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
-            ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
-            ax2.plot(x0, y0, '.g', markersize=15)
+                ax2.plot((x0, x1), (y0, y1), '-r', linewidth=2.5)
+                ax2.plot((x0, x2), (y0, y2), '-r', linewidth=2.5)
+                ax2.plot(x0, y0, '.g', markersize=15)
 
-            minr, minc, maxr, maxc = props.bbox
-            bx = (minc, maxc, maxc, minc, minc)
-            by = (minr, minr, maxr, maxr, minr)
-            ax2.plot(bx, by, '-b', linewidth=2.5)
+                minr, minc, maxr, maxc = props.bbox
+                bx = (minc, maxc, maxc, minc, minc)
+                by = (minr, minr, maxr, maxr, minr)
+                ax2.plot(bx, by, '-b', linewidth=2.5)
 
-        st.pyplot(fig2)
+            st.pyplot(fig2)
+        else:
+            st.error("Image 2 labeling failed: dimensions not suitable for regionprops.")
+
 
     # Menghitung properti untuk label_img1
     props1 = regionprops_table(label_img1, properties=('centroid', 'orientation',
