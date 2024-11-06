@@ -412,15 +412,21 @@ elif menu == "region":
         boxes1 = ndi.find_objects(label_img1)
         for label_ind, label_coords in enumerate(boxes1):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
-            
-            # Pastikan label_coords adalah tuple yang valid dan berada dalam batas gambar
+
+            # Validasi koordinat
             if len(label_coords) == 2:
                 row_slice, col_slice = label_coords
+
+                # Cek apakah koordinat dalam batas gambar
                 if row_slice.stop <= image_segmented1.shape[0] and col_slice.stop <= image_segmented1.shape[1]:
-                    cell = image_segmented1[row_slice, col_slice]  # Memastikan label coords valid
-                    if np.product(cell.shape) < 2000: 
-                        print('Label {} is too small! Setting to 0.'.format(label_ind))
-                        image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+                    try:
+                        # Mengakses region gambar
+                        cell = image_segmented1[row_slice, col_slice]
+                        if np.product(cell.shape) < 2000: 
+                            print(f'Label {label_ind + 1} is too small! Setting to 0.')
+                            image_segmented1 = np.where(label_img1 == label_ind + 1, 0, image_segmented1)
+                    except Exception as e:
+                        print(f"Error accessing coordinates for label {label_ind + 1}: {e}")
                 else:
                     print(f"Label {label_ind + 1} out of image bounds.")
             else:
@@ -434,15 +440,21 @@ elif menu == "region":
         boxes2 = ndi.find_objects(label_img2)
         for label_ind, label_coords in enumerate(boxes2):
             st.write(f"Label {label_ind + 1} Coordinates: {label_coords}")
-            
-            # Pastikan label_coords adalah tuple yang valid dan berada dalam batas gambar
+
+            # Validasi koordinat
             if len(label_coords) == 2:
                 row_slice, col_slice = label_coords
+
+                # Cek apakah koordinat dalam batas gambar
                 if row_slice.stop <= image_segmented2.shape[0] and col_slice.stop <= image_segmented2.shape[1]:
-                    cell = image_segmented2[row_slice, col_slice]
-                    if np.product(cell.shape) < 2000: 
-                        print('Label {} is too small! Setting to 0.'.format(label_ind))
-                        image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+                    try:
+                        # Mengakses region gambar
+                        cell = image_segmented2[row_slice, col_slice]
+                        if np.product(cell.shape) < 2000: 
+                            print(f'Label {label_ind + 1} is too small! Setting to 0.')
+                            image_segmented2 = np.where(label_img2 == label_ind + 1, 0, image_segmented2)
+                    except Exception as e:
+                        print(f"Error accessing coordinates for label {label_ind + 1}: {e}")
                 else:
                     print(f"Label {label_ind + 1} out of image bounds.")
             else:
@@ -451,6 +463,7 @@ elif menu == "region":
         # Regenerate labels for Image 2
         label_img2, nlabels2 = ndi.label(image_segmented2)
         st.write(f"After filtering, there are {nlabels2} separate components/objects detected in Image 2.")
+
 
 
         # Region properties for Image 1
