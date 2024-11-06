@@ -189,7 +189,7 @@ elif menu == "Median Filter":
         my_gray1 = convert_to_grayscale(im1_array)
         my_gray2 = convert_to_grayscale(im2_array)
         
-        # Normalisasi gambar ke dalam rentang 0 hingga 1 jika perlu
+        # Normalisasi gambar ke dalam rentang 0 hingga 1
         my_gray1 = my_gray1 / np.max(my_gray1)  # Memastikan nilai dalam rentang [0, 1]
         my_gray2 = my_gray2 / np.max(my_gray2)  # Memastikan nilai dalam rentang [0, 1]
         
@@ -198,15 +198,26 @@ elif menu == "Median Filter":
         img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
 
     if im1 is not None and im2 is not None:
+        # Terapkan Median Filter
         med1 = MedianFilter(img_adapteq1)
         med2 = MedianFilter(img_adapteq2)
+
+        # Pastikan hasil median filter kembali ke rentang [0, 255] sebelum konversi ke uint8
+        med1 = np.clip(med1, 0, 1) * 255
+        med2 = np.clip(med2, 0, 1) * 255
+        
+        # Konversi ke tipe uint8
+        med1 = med1.astype(np.uint8)
+        med2 = med2.astype(np.uint8)
+
+        # Tampilkan hasil
         col1, col2 = st.columns(2)
         with col1:
             st.write("### Median Filtered Image 1")
-            st.image(med1.astype(np.uint8), caption="Median Filtered Image 1", use_column_width=True)
+            st.image(med1, caption="Median Filtered Image 1", use_column_width=True)
         with col2:
             st.write("### Median Filtered Image 2")
-            st.image(med2.astype(np.uint8), caption="Median Filtered Image 2", use_column_width=True)
+            st.image(med2, caption="Median Filtered Image 2", use_column_width=True)
     else:
         st.write("Please upload both images to apply median filter.")
     
