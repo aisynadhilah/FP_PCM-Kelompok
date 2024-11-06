@@ -132,103 +132,71 @@ elif menu == "Histograms":
     else:
         st.write("Please upload both images to see the histograms.")
 
-# Bagian Grayscale dan Median Filter
+# Bagian Grayscale
 elif menu == "Grayscale":
     st.write("## Grayscale Conversion")
-
-    # Mengonversi gambar menjadi grayscale
-    my_gray1 = convert_to_grayscale(im1)
-    my_gray2 = convert_to_grayscale(im2)
-
-    # Tampilkan gambar grayscale
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("### Grayscale Image 1")
-        st.image(my_gray1.astype(np.uint8), caption="Grayscale Image 1", use_column_width=True)
-    with col2:
-        st.write("### Grayscale Image 2")
-        st.image(my_gray2.astype(np.uint8), caption="Grayscale Image 2", use_column_width=True)
-
+    if im1 is not None and im2 is not None:
+        my_gray1 = convert_to_grayscale(im1)
+        my_gray2 = convert_to_grayscale(im2)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("### Grayscale Image 1")
+            st.image(my_gray1.astype(np.uint8), caption="Grayscale Image 1", use_column_width=True)
+        with col2:
+            st.write("### Grayscale Image 2")
+            st.image(my_gray2.astype(np.uint8), caption="Grayscale Image 2", use_column_width=True)
+    else:
+        st.write("Please upload both images to convert to grayscale.")
 
 # Bagian Hasil AHE
 elif menu == "AHE Results":
     st.write("## Adaptive Histogram Equalization (AHE) Results")
+    if 'my_gray1' not in locals() or 'my_gray2' not in locals():
+        my_gray1 = convert_to_grayscale(im1)
+        my_gray2 = convert_to_grayscale(im2)
 
     if im1 is not None and im2 is not None:
-        img_adapteq1 = ahe_processing(my_gray1)
-        img_adapteq2 = ahe_processing(my_gray2)
-
+        img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
+        img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
         col1, col2 = st.columns(2)
         with col1:
-            st.write("### Original Image 1")
-            st.image(im1, caption='Original Image 1', use_column_width=True)
             st.write("### AHE Image 1")
             st.image(img_adapteq1, caption='AHE Image 1', use_column_width=True)
         with col2:
-            st.write("### Original Image 2")
-            st.image(im2, caption='Original Image 2', use_column_width=True)
             st.write("### AHE Image 2")
             st.image(img_adapteq2, caption='AHE Image 2', use_column_width=True)
-        
-        st.write("### Histograms Comparison for AHE")
-        fig, axes = plt.subplots(2, 2, figsize=(10, 10))
-
-        # Plot original and AHE histograms for Image 1
-        axes[0, 0].plot(ndi.histogram(im1, min=0, max=255, bins=256), color='orange')
-        axes[0, 0].set_title("Histogram for Image 1")
-        axes[0, 1].plot(ndi.histogram(img_adapteq1, min=0, max=255, bins=256), color='blue')
-        axes[0, 1].set_title("Histogram for AHE Image 1")
-
-        # Plot original and AHE histograms for Image 2
-        axes[1, 0].plot(ndi.histogram(im2, min=0, max=255, bins=256), color='orange')
-        axes[1, 0].set_title("Histogram for Image 2")
-        axes[1, 1].plot(ndi.histogram(img_adapteq2, min=0, max=255, bins=256), color='blue')
-        axes[1, 1].set_title("Histogram for AHE Image 2")
-
-        st.pyplot(fig)
     else:
-        st.write("Please upload both images to see the AHE results.")
+        st.write("Please upload both images to apply AHE.")
 
-# Bagian Grayscale dan Median Filter
+# Bagian Median Filter
 elif menu == "Median Filter":
     st.write("## Median Filter Application")
 
-    # Terapkan Median Filter pada gambar grayscale
-    med1 = MedianFilter(img_adapteq1)
-    med2 = MedianFilter(img_adapteq1)
+    if 'img_adapteq1' not in locals() or 'img_adapteq2' not in locals():
+        my_gray1 = convert_to_grayscale(im1)
+        my_gray2 = convert_to_grayscale(im2)
+        img_adapteq1 = exposure.equalize_adapthist(my_gray1, clip_limit=0.01)
+        img_adapteq2 = exposure.equalize_adapthist(my_gray2, clip_limit=0.01)
+        med1 = MedianFilter(img_adapteq1)
+        med2 = MedianFilter(img_adapteq2)
 
-    # Tampilkan gambar yang sudah difilter median
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("### Median Filtered Image 1")
-        st.image(med1.astype(np.uint8), caption="Median Filtered Image 1", use_column_width=True)
-    with col2:
-        st.write("### Median Filtered Image 2")
-        st.image(med2.astype(np.uint8), caption="Median Filtered Image 2", use_column_width=True)
-
-    # Histogram untuk gambar yang telah difilter median
-    histogram_med1 = ndi.histogram(med1, min=0, max=255, bins=256)
-    histogram_med2 = ndi.histogram(med2, min=0, max=255, bins=256)
-
-    # Tampilkan histogram
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("### Histogram of Median Filtered Image 1")
-        fig1, ax1 = plt.subplots()
-        ax1.plot(histogram_med1)
-        st.pyplot(fig1)
-    with col2:
-        st.write("### Histogram of Median Filtered Image 2")
-        fig2, ax2 = plt.subplots()
-        ax2.plot(histogram_med2)
-        st.pyplot(fig2)
+    if im1 is not None and im2 is not None:
+        med1 = MedianFilter(img_adapteq1)
+        med2 = MedianFilter(img_adapteq2)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("### Median Filtered Image 1")
+            st.image(med1.astype(np.uint8), caption="Median Filtered Image 1", use_column_width=True)
+        with col2:
+            st.write("### Median Filtered Image 2")
+            st.image(med2.astype(np.uint8), caption="Median Filtered Image 2", use_column_width=True)
     else:
-        st.write("Please upload both images to see the grayscale and median filtered results.")
+        st.write("Please upload both images to apply median filter.")
     
 
-# Bagian Thresholding dan Median Filtering
-elif menu == "Thresholding dan Median Filtering":
-    st.write("## Thresholding dan Median Filtering")
+# Bagian Thresholding
+elif menu == "Thresholding":
+    st.write("## Thresholding")
     
     # Pastikan gambar median difilter sudah didefinisikan
     if 'med1' not in locals() or 'med2' not in locals():
