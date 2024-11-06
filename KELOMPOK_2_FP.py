@@ -11,6 +11,7 @@ from skimage.draw import ellipse
 from skimage.measure import label, regionprops, regionprops_table
 from skimage.transform import rotate
 from skimage.io import imread
+from PIL import Image
 
 image_segmented1 = None
 image_segmented2 = None
